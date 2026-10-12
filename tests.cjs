@@ -1,0 +1,7 @@
+const assert=require('node:assert/strict');const C=require('./core.js');
+assert.equal(C.num('1 234,50'),1234.5);for(const x of ['',-1,'abc',Infinity])assert.throws(()=>C.num(x));assert.throws(()=>C.date('2026-02-30'));
+const p=C.purchase({date:'2026-10-12',supplier:'A',label:'Légumes',ht:'120,50',vat:'5,5'});assert.equal(C.round(p.ht*p.vat/100),6.63);
+const r=C.recipe({name:'Plat',portions:4,price:20,ingredients:[{name:'Riz',quantity:2,unitCost:6},{name:'Sauce',quantity:1,unitCost:4}]});assert.equal(C.cost(r),4);
+const s=C.sale({date:'2026-10-12',recipeId:r.id,quantity:10,price:20,cost:C.cost(r)},[r]);assert.equal(s.quantity*s.price,200);assert.equal(s.quantity*(s.price-s.cost),160);assert.throws(()=>C.sale({...s,quantity:1.5},[r]));assert.throws(()=>C.sale({...s,recipeId:'missing'},[r]));
+assert.equal(C.csv('\uFEFFdate;fournisseur;libelle;ht;tva\r\n2026-10-12;"A; B";"Légumes\nverts";120,50;5,5')[0].fournisseur,'A; B');assert.equal(C.csv('a,b\n"x""y",z')[0].a,'x"y');assert.throws(()=>C.csv('a;b\nx'));assert.throws(()=>C.csv('a;b\n"x;y'));assert.throws(()=>C.csv('a;a\nx;y'));
+const data=C.validate({version:2,purchases:[p],recipes:[r],sales:[s]});assert.deepEqual(C.validate(JSON.parse(JSON.stringify(data))),data);assert.throws(()=>C.validate({...data,recipes:[r,r]}));assert.throws(()=>C.validate({...data,version:1}));console.log('Calculs, CSV, dates, ventes et sauvegardes : 19 assertions réussies.');
